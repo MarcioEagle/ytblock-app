@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YTBlock — Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#000;--bg1:#07070c;--bg2:#0e0e18;--bg3:#161622;--bg4:#1e1e2c;
+  --g:#00ff88;--g2:#00cfff;--r:#ff4757;--y:#ffa502;
+  --g-dim:rgba(0,255,136,.1);--r-dim:rgba(255,71,87,.1);--y-dim:rgba(255,165,2,.1);
+  --tx1:#f0f0f8;--tx2:#8888a8;--tx3:#44445a;--bdr:#1a1a2e;
+  --sb:220px;--top:58px;
+  font-family:'Poppins',sans-serif;
+}
+html,body{height:100%;background:var(--bg0);color:var(--tx1);overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ── LAYOUT ── */
+#app{display:flex;height:100vh}
+
+/* ── SIDEBAR ── */
+#sb{
+  width:var(--sb);flex-shrink:0;
+  background:var(--bg1);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;padding:0;z-index:20;
+}
+.sb-head{
+  padding:20px 18px 16px;border-bottom:1px solid var(--bdr);
+}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-logo-ico{width:36px;height:36px;border-radius:9px;background:var(--r-dim);border:1px solid rgba(255,71,87,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-txt{font-weight:800;font-size:14px;color:var(--tx1);letter-spacing:.04em;line-height:1.2}
+.sb-logo-txt span{display:block;font-size:9px;font-weight:500;color:var(--r);letter-spacing:.12em;text-transform:uppercase}
+.sb-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:10px 12px;border-radius:8px;cursor:pointer;
+  color:var(--tx2);position:relative;transition:color .15s,background .15s;
+  border:none;background:none;text-align:left;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;
+}
+.nav:hover,.nav.active{color:var(--tx1);background:rgba(255,255,255,.05)}
+.nav.active{color:var(--r)}
+.nav-div{height:1px;background:var(--bdr);margin:8px 4px}
+.sb-foot{padding:14px 16px;border-top:1px solid var(--bdr)}
+.sb-admin{font-size:11px;color:var(--tx3);margin-bottom:8px}
+.sb-admin strong{display:block;font-size:12px;color:var(--tx2);font-weight:500}
+.btn-logout{
+  width:100%;display:flex;align-items:center;gap:8px;
+  background:var(--r-dim);border:1px solid rgba(255,71,87,.2);
+  color:var(--r);border-radius:8px;padding:9px 12px;
+  font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;cursor:pointer;
+  transition:background .15s;
+}
+.btn-logout:hover{background:rgba(255,71,87,.18)}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#top{
+  height:var(--top);flex-shrink:0;
+  background:var(--bg1);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;padding:0 24px;gap:14px;
+}
+.page-title{font-size:15px;font-weight:700;color:var(--tx1)}
+.page-sub{font-size:12px;color:var(--tx3);margin-left:4px}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.top-badge{
+  display:flex;align-items:center;gap:5px;
+  border-radius:50px;padding:5px 12px;font-size:11px;font-weight:600;
+}
+.badge-g{background:var(--g-dim);border:1px solid rgba(0,255,136,.2);color:var(--g)}
+.badge-r{background:var(--r-dim);border:1px solid rgba(255,71,87,.2);color:var(--r)}
+.badge-b{background:rgba(0,207,255,.1);border:1px solid rgba(0,207,255,.2);color:var(--g2)}
+.dot{width:5px;height:5px;border-radius:50%;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── VIEWS ── */
+.view{display:none}
+.view.active{display:block}
+
+/* ── STATS CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:20px;
+  position:relative;overflow:hidden;transition:border-color .2s;
+}
+.stat-card:hover{border-color:var(--bdr)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.green::before{background:linear-gradient(90deg,transparent,var(--g),transparent)}
+.stat-card.red::before{background:linear-gradient(90deg,transparent,var(--r),transparent)}
+.stat-card.blue::before{background:linear-gradient(90deg,transparent,var(--g2),transparent)}
+.stat-card.yellow::before{background:linear-gradient(90deg,transparent,var(--y),transparent)}
+.stat-label{font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.stat-num{font-size:32px;font-weight:800;line-height:1;margin-bottom:4px}
+.stat-card.green .stat-num{color:var(--g)}
+.stat-card.red .stat-num{color:var(--r)}
+.stat-card.blue .stat-num{color:var(--g2)}
+.stat-card.yellow .stat-num{color:var(--y)}
+.stat-hint{font-size:11px;color:var(--tx3)}
+
+/* ── TABLE SECTION ── */
+.section{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;overflow:hidden}
+.sec-head{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;
+}
+.sec-title{font-size:13px;font-weight:700;color:var(--tx1);letter-spacing:.03em}
+.sec-count{font-size:11px;color:var(--tx3);background:var(--bg3);border:1px solid var(--bdr);border-radius:50px;padding:2px 8px}
+.sec-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* Search */
+.search-wrap{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--bdr);
+  border-radius:8px;padding:0 12px;height:34px;
+  transition:border-color .2s;
+}
+.search-wrap:focus-within{border-color:rgba(0,207,255,.35)}
+.search-wrap input{background:none;border:none;outline:none;color:var(--tx1);font-family:'Poppins',sans-serif;font-size:12px;width:180px}
+.search-wrap input::placeholder{color:var(--tx3)}
+
+/* Filter */
+.filter-sel{
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;
+  padding:0 10px;height:34px;color:var(--tx1);
+  font-family:'Poppins',sans-serif;font-size:12px;cursor:pointer;outline:none;
+}
+
+/* Add user button */
+.btn-add{
+  display:flex;align-items:center;gap:6px;
+  background:var(--g);color:#000;border:none;
+  border-radius:8px;padding:0 14px;height:34px;
+  font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;letter-spacing:.03em;transition:opacity .2s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.88}
+
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--bg3);border-bottom:1px solid var(--bdr)}
+thead th{
+  padding:11px 16px;text-align:left;
+  font-size:10px;font-weight:700;color:var(--tx3);
+  letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--bdr);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+td{padding:12px 16px;vertical-align:middle}
+.td-name{font-weight:600;color:var(--tx1)}
+.td-email{font-size:12px;color:var(--tx2)}
+.td-date{font-size:11px;color:var(--tx3)}
+.td-ads{font-size:12px;font-weight:600;color:var(--g2)}
+
+/* Status badge */
+.s-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  border-radius:50px;padding:3px 10px;font-size:10px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
+}
+.s-active{background:var(--g-dim);border:1px solid rgba(0,255,136,.25);color:var(--g)}
+.s-inactive{background:var(--y-dim);border:1px solid rgba(255,165,2,.25);color:var(--y)}
+.s-blocked{background:var(--r-dim);border:1px solid rgba(255,71,87,.25);color:var(--r)}
+.s-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* Action buttons */
+.acts{display:flex;align-items:center;gap:4px}
+.act-btn{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--bdr);
+  background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s,background .15s;color:var(--tx2);
+}
+.act-btn:hover{border-color:var(--tx3);background:var(--bg3);color:var(--tx1)}
+.act-btn.red:hover{border-color:rgba(255,71,87,.4);background:var(--r-dim);color:var(--r)}
+.act-btn.green:hover{border-color:rgba(0,255,136,.35);background:var(--g-dim);color:var(--g)}
+.act-btn.blue:hover{border-color:rgba(0,207,255,.35);background:rgba(0,207,255,.08);color:var(--g2)}
+
+/* Pagination */
+.pagination{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-top:1px solid var(--bdr);flex-wrap:wrap;gap:10px;
+}
+.page-info{font-size:12px;color:var(--tx3)}
+.page-btns{display:flex;gap:4px}
+.page-btn{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--bdr);
+  background:none;color:var(--tx2);cursor:pointer;font-size:12px;
+  font-family:'Poppins',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;
+}
+.page-btn:hover,.page-btn.active{background:var(--bg3);border-color:var(--tx3);color:var(--tx1)}
+.page-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  backdrop-filter:blur(6px);z-index:200;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;
+  padding:32px;width:100%;max-width:420px;
+  box-shadow:0 40px 80px rgba(0,0,0,.5);
+}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:6px;color:var(--tx1)}
+.modal p{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:24px}
+.modal label{display:block;font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+.modal input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;color:var(--tx1);font-family:'Poppins',sans-serif;font-size:13px;outline:none;transition:border-color .2s;margin-bottom:14px}
+.modal input:focus{border-color:rgba(0,207,255,.4)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.mbtn{
+  padding:10px 20px;border-radius:9px;font-family:'Poppins',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .2s;
+}
+.mbtn.cancel{background:var(--bg3);color:var(--tx2);border:1px solid var(--bdr)}
+.mbtn.cancel:hover{color:var(--tx1)}
+.mbtn.confirm{background:var(--g);color:#000}
+.mbtn.confirm:hover{opacity:.88}
+.mbtn.danger{background:var(--r);color:#fff}
+.mbtn.danger:hover{opacity:.88}
+.modal-msg{font-size:12px;padding:8px 12px;border-radius:7px;margin-bottom:12px;display:none}
+.modal-msg.ok{background:var(--g-dim);border:1px solid rgba(0,255,136,.2);color:var(--g)}
+.modal-msg.err{background:var(--r-dim);border:1px solid rgba(255,71,87,.25);color:var(--r)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast-item{
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;
+  padding:12px 16px;font-size:13px;color:var(--tx1);
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  display:flex;align-items:center;gap:8px;min-width:260px;
+  animation:toastIn .3s ease;pointer-events:auto;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast-item.ok{border-color:rgba(0,255,136,.3)}
+.toast-item.err{border-color:rgba(255,71,87,.3)}
+
+/* ── LOADING ── */
+.tbl-loading{padding:48px;text-align:center;color:var(--tx3);font-size:13px}
+.spin{display:inline-block;width:24px;height:24px;border:2px solid var(--bdr);border-top-color:var(--g);border-radius:50%;animation:sp .75s linear infinite;margin-bottom:10px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── EMPTY ── */
+.empty{padding:48px;text-align:center;color:var(--tx3);font-size:13px}
+.empty svg{display:block;margin:0 auto 12px;opacity:.3}
+
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){
+  :root{--sb:0px}
+  #sb{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sb">
+    <div class="sb-head">
+      <div class="sb-logo">
+        <div class="sb-logo-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div class="sb-logo-txt">YTBlock Admin<span>painel de controle</span></div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <button class="nav active" onclick="showView('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Visão geral
+      </button>
+      <button class="nav" onclick="showView('users')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuários
+      </button>
+      <div class="nav-div"></div>
+      <button class="nav" onclick="window.open('/','_blank')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ver site
+      </button>
+    </div>
+    <div class="sb-foot">
+      <div class="sb-admin">Logado como:<strong id="admin-email-sb">...</strong></div>
+      <button class="btn-logout" onclick="adminLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sair do painel
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="top">
+      <span class="page-title" id="page-title">Visão geral</span>
+      <span class="page-sub" id="page-sub">— resumo do sistema</span>
+      <div class="top-right">
+        <div class="top-badge badge-g"><div class="dot" style="background:var(--g)"></div><span id="stat-active-top">0</span> ativos</div>
+        <div class="top-badge badge-r"><div class="dot" style="background:var(--r)"></div><span id="stat-blocked-top">0</span> bloqueados</div>
+        <div class="top-badge badge-b">app.ytblock.space</div>
+      </div>
+    </div>
+
+    <div id="content">
+
+      <!-- DASHBOARD VIEW -->
+      <div id="view-dashboard" class="view active">
+        <div class="stats-row">
+          <div class="stat-card green">
+            <div class="stat-label">Ativos</div>
+            <div class="stat-num" id="s-active">—</div>
+            <div class="stat-hint">assinaturas ativas</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">Inativos</div>
+            <div class="stat-num" id="s-inactive">—</div>
+            <div class="stat-hint">sem assinatura</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">Total</div>
+            <div class="stat-num" id="s-total">—</div>
+            <div class="stat-hint">usuários cadastrados</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">Hoje</div>
+            <div class="stat-num" id="s-today">—</div>
+            <div class="stat-hint">novos nas últimas 24h</div>
+          </div>
+        </div>
+
+        <!-- Recent users table -->
+        <div class="section">
+          <div class="sec-head">
+            <span class="sec-title">Últimos cadastros</span>
+            <div class="sec-actions">
+              <button class="btn-add" onclick="showView('users')">Ver todos →</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Nome / Email</th>
+                <th>Status</th>
+                <th>Plano</th>
+                <th>Cadastro</th>
+                <th>Anúncios bloq.</th>
+                <th>Ações</th>
+              </tr></thead>
+              <tbody id="recent-tbody">
+                <tr><td colspan="6" class="tbl-loading"><div class="spin"></div><br>Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS VIEW -->
+      <div id="view-users" class="view">
+        <div class="section">
+          <div class="sec-head">
+            <span class="sec-title">Gerenciar usuários</span>
+            <span class="sec-count" id="users-count">0</span>
+            <div class="sec-actions">
+              <div class="search-wrap">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="search-inp" placeholder="Buscar email ou nome..." oninput="debounceSearch()">
+              </div>
+              <select class="filter-sel" id="filter-status" onchange="loadUsers(1)">
+                <option value="all">Todos</option>
+                <option value="active">Ativos</option>
+                <option value="inactive">Inativos</option>
+                <option value="blocked">Bloqueados</option>
+              </select>
+              <button class="btn-add" onclick="openCreateModal()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Novo usuário
+              </button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Nome / Email</th>
+                <th>Status</th>
+                <th>Plano</th>
+                <th>Cadastro</th>
+                <th>Anúncios bloq.</th>
+                <th>Ações</th>
+              </tr></thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="6" class="tbl-loading"><div class="spin"></div><br>Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span class="page-info" id="page-info">—</span>
+            <div class="page-btns" id="page-btns"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ── MODAIS ── -->
+
+<!-- Create user -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <h3>➕ Criar novo usuário</h3>
+    <p>O sistema cria a conta e envia o email de boas-vindas automaticamente com o link para criar a senha.</p>
+    <div class="modal-msg" id="create-msg"></div>
+    <label>Email *</label>
+    <input type="email" id="create-email" placeholder="cliente@email.com">
+    <label>Nome (opcional)</label>
+    <input type="text" id="create-name" placeholder="Nome do cliente">
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="mbtn confirm" onclick="createUser()">Criar e enviar email</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm action -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <h3 id="confirm-title">Confirmar ação</h3>
+    <p id="confirm-text">Tem certeza?</p>
+    <div class="modal-btns">
+      <button class="mbtn cancel" onclick="closeModal('modal-confirm')">Cancelar</button>
+      <button class="mbtn danger" id="confirm-btn" onclick="executeConfirm()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<script>
+let currentPage = 1, totalUsers = 0, searchTimer = null;
+let confirmAction = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/api/me').catch(()=>null);
+    // admin session check
+    document.getElementById('admin-email-sb').textContent = 'Admin';
+    loadStats();
+    loadRecentUsers();
+  } catch(e) { window.location.href = '/admin/login'; }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+const viewTitles = { dashboard:['Visão geral','— resumo do sistema'], users:['Usuários','— gerenciar acessos'] };
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  event.currentTarget?.classList?.add('active');
+  document.getElementById('page-title').textContent = viewTitles[v][0];
+  document.getElementById('page-sub').textContent = viewTitles[v][1];
+  if (v === 'users') loadUsers(1);
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const d = await apiFetch('/api/admin/stats');
+    document.getElementById('s-active').textContent   = d.active;
+    document.getElementById('s-inactive').textContent = d.inactive;
+    document.getElementById('s-total').textContent    = d.total;
+    document.getElementById('s-today').textContent    = d.today;
+    document.getElementById('stat-active-top').textContent  = d.active;
+    document.getElementById('stat-blocked-top').textContent = d.inactive;
+  } catch(e) { console.error(e); }
+}
+
+// ── Recent users (dashboard) ──────────────────────────────────────────────────
+async function loadRecentUsers() {
+  try {
+    const d = await apiFetch('/api/admin/users?page=1');
+    renderRows(document.getElementById('recent-tbody'), d.users.slice(0,8));
+  } catch(e) {
+    document.getElementById('recent-tbody').innerHTML = '<tr><td colspan="6" class="empty">Erro ao carregar.</td></tr>';
+  }
+}
+
+// ── Users list ────────────────────────────────────────────────────────────────
+async function loadUsers(page=1) {
+  currentPage = page;
+  const search = document.getElementById('search-inp').value.trim();
+  const status = document.getElementById('filter-status').value;
+  const tbody  = document.getElementById('users-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="tbl-loading"><div class="spin"></div><br>Carregando...</td></tr>';
+  try {
+    const params = new URLSearchParams({ page, ...(search&&{search}), ...(status!=='all'&&{status}) });
+    const d = await apiFetch('/api/admin/users?'+params);
+    totalUsers = d.total;
+    document.getElementById('users-count').textContent = d.total;
+    renderRows(tbody, d.users);
+    renderPagination(page, d.total);
+    document.getElementById('page-info').textContent = `${((page-1)*20)+1}–${Math.min(page*20,d.total)} de ${d.total}`;
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Erro ao carregar usuários.</td></tr>';
+  }
+}
+
+function renderRows(tbody, users) {
+  if (!users || !users.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Nenhum usuário encontrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const statusBadge = {
+      active:   `<span class="s-badge s-active"><span class="s-dot"></span>Ativo</span>`,
+      inactive: `<span class="s-badge s-inactive"><span class="s-dot"></span>Inativo</span>`,
+      blocked:  `<span class="s-badge s-blocked"><span class="s-dot"></span>Bloqueado</span>`,
+    }[u.status] || `<span class="s-badge s-inactive">${u.status}</span>`;
+    const date = u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '—';
+    const ads  = (u.ads_blocked||0).toLocaleString('pt-BR');
+    return `<tr>
+      <td>
+        <div class="td-name">${esc(u.name||'—')}</div>
+        <div class="td-email">${esc(u.email)}</div>
+      </td>
+      <td>${statusBadge}</td>
+      <td><span style="font-size:11px;font-weight:600;color:var(--g2);text-transform:uppercase">${u.plan||'pro'}</span></td>
+      <td class="td-date">${date}</td>
+      <td class="td-ads">${ads}</td>
+      <td>
+        <div class="acts">
+          ${u.status==='active'
+            ? `<button class="act-btn red" title="Bloquear acesso" onclick="confirmAction('block','${u.id}','${esc(u.email)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></button>`
+            : `<button class="act-btn green" title="Ativar acesso" onclick="confirmAction('activate','${u.id}','${esc(u.email)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`
+          }
+          <button class="act-btn blue" title="Resetar senha (envia email)" onclick="confirmAction('reset','${u.id}','${esc(u.email)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+          <button class="act-btn" title="Reenviar email de acesso" onclick="confirmAction('resend','${u.id}','${esc(u.email)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+          <button class="act-btn red" title="Excluir usuário" onclick="confirmAction('delete','${u.id}','${esc(u.email)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPagination(current, total) {
+  const pages = Math.ceil(total/20);
+  const btns = document.getElementById('page-btns');
+  if (pages <= 1) { btns.innerHTML=''; return; }
+  let html = `<button class="page-btn" onclick="loadUsers(${current-1})" ${current<=1?'disabled':''}>‹</button>`;
+  for (let i=1;i<=pages;i++) {
+    if (i===1||i===pages||Math.abs(i-current)<=1)
+      html += `<button class="page-btn${i===current?' active':''}" onclick="loadUsers(${i})">${i}</button>`;
+    else if (Math.abs(i-current)===2)
+      html += `<span style="color:var(--tx3);padding:0 2px;font-size:12px">…</span>`;
+  }
+  html += `<button class="page-btn" onclick="loadUsers(${current+1})" ${current>=pages?'disabled':''}>›</button>`;
+  btns.innerHTML = html;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+const actionConfig = {
+  block:    { title:'Bloquear acesso', text: e=>`Bloquear o usuário <strong>${e}</strong>? Ele perderá o acesso imediatamente.`, btn:'Bloquear', color:'danger' },
+  activate: { title:'Ativar acesso',   text: e=>`Ativar o acesso de <strong>${e}</strong>?`, btn:'Ativar', color:'confirm' },
+  reset:    { title:'Resetar senha',   text: e=>`Enviar email de redefinição de senha para <strong>${e}</strong>?`, btn:'Enviar email', color:'confirm' },
+  resend:   { title:'Reenviar email',  text: e=>`Reenviar o email de boas-vindas para <strong>${e}</strong>?`, btn:'Reenviar', color:'confirm' },
+  delete:   { title:'Excluir usuário', text: e=>`Excluir permanentemente <strong>${e}</strong>? Esta ação não pode ser desfeita.`, btn:'Excluir', color:'danger' },
+};
+
+let pendingAction = null;
+function confirmAction(type, id, email) {
+  const cfg = actionConfig[type];
+  document.getElementById('confirm-title').textContent = cfg.title;
+  document.getElementById('confirm-text').innerHTML    = cfg.text(email);
+  const btn = document.getElementById('confirm-btn');
+  btn.textContent = cfg.btn;
+  btn.className = `mbtn ${cfg.color}`;
+  pendingAction = { type, id, email };
+  document.getElementById('modal-confirm').classList.add('show');
+}
+
+async function executeConfirm() {
+  if (!pendingAction) return;
+  const { type, id, email } = pendingAction;
+  closeModal('modal-confirm');
+  try {
+    let r;
+    if (type==='block')    r = await apiFetch(`/api/admin/users/${id}/status`,'PATCH',{status:'blocked'});
+    if (type==='activate') r = await apiFetch(`/api/admin/users/${id}/status`,'PATCH',{status:'active'});
+    if (type==='reset')    r = await apiFetch(`/api/admin/users/${id}/reset-password`,'POST',{});
+    if (type==='resend')   r = await apiFetch(`/api/admin/users/${id}/resend-email`,'POST',{});
+    if (type==='delete')   r = await apiFetch(`/api/admin/users/${id}`,'DELETE');
+    toast(r.message || 'Ação realizada com sucesso!', 'ok');
+    loadStats();
+    loadUsers(currentPage);
+    loadRecentUsers();
+  } catch(e) { toast(e.message||'Erro ao executar ação.','err'); }
+  pendingAction = null;
+}
+
+// ── Create user ───────────────────────────────────────────────────────────────
+function openCreateModal() {
+  document.getElementById('create-email').value = '';
+  document.getElementById('create-name').value  = '';
+  document.getElementById('create-msg').style.display = 'none';
+  document.getElementById('modal-create').classList.add('show');
+}
+async function createUser() {
+  const email = document.getElementById('create-email').value.trim();
+  const name  = document.getElementById('create-name').value.trim();
+  const msg   = document.getElementById('create-msg');
+  if (!email) { showModalMsg(msg,'Email obrigatório.','err'); return; }
+  try {
+    const r = await apiFetch('/api/admin/users/create','POST',{email,name});
+    showModalMsg(msg, r.message||'Usuário criado!','ok');
+    setTimeout(()=>{ closeModal('modal-create'); loadUsers(1); loadStats(); loadRecentUsers(); },1600);
+  } catch(e) { showModalMsg(msg, e.message||'Erro.','err'); }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>loadUsers(1), 400);
+}
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function showModalMsg(el,txt,type) { el.textContent=txt; el.className=`modal-msg ${type}`; el.style.display='block'; }
+
+function toast(msg, type='ok') {
+  const div = document.createElement('div');
+  div.className = `toast-item ${type}`;
+  div.innerHTML = `<span style="font-size:16px">${type==='ok'?'✅':'❌'}</span>${msg}`;
+  document.getElementById('toast').appendChild(div);
+  setTimeout(()=>div.remove(), 3500);
+}
+
+async function apiFetch(url, method='GET', body=null) {
+  const opts = { method, headers:{'Content-Type':'application/json'} };
+  if (body && method!=='GET') opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error||'Erro na requisição.');
+  return d;
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function adminLogout() {
+  await fetch('/api/admin/logout',{method:'POST'}).catch(()=>{});
+  window.location.href = '/admin/login';
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('show'); });
+});
+
+init();
+</script>
+</body>
+</html>

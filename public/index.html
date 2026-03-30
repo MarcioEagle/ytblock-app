@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YTBlock — Entrar</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#000;--bg1:#07070c;--bg2:#0e0e18;--bg3:#161622;
+  --g:#00ff88;--g2:#00cfff;--g-dim:rgba(0,255,136,.1);
+  --tx1:#f0f0f8;--tx2:#8888a8;--tx3:#44445a;--bdr:#1a1a2e;
+  font-family:'Poppins',sans-serif;
+}
+html,body{height:100%;background:var(--bg0);color:var(--tx1);overflow:hidden}
+
+/* animated grid */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,136,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,136,.025) 1px,transparent 1px);
+  background-size:60px 60px;
+  animation:grid 25s linear infinite;pointer-events:none;
+}
+@keyframes grid{to{background-position:60px 60px}}
+
+/* glow */
+body::after{
+  content:'';position:fixed;top:-30%;left:50%;transform:translateX(-50%);
+  width:700px;height:700px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,136,.06) 0%,transparent 65%);
+  pointer-events:none;animation:glow 9s ease-in-out infinite alternate;
+}
+@keyframes glow{to{transform:translateX(-50%) scale(1.2)}}
+
+.wrap{
+  height:100%;display:flex;align-items:center;justify-content:center;
+  padding:20px;position:relative;z-index:1;
+}
+
+.card{
+  background:rgba(14,14,24,.85);
+  border:1px solid var(--bdr);border-radius:20px;
+  padding:44px 40px;width:100%;max-width:400px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 40px 80px rgba(0,0,0,.6);
+}
+
+.logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:32px}
+.logo-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--g-dim);border:1px solid rgba(0,255,136,.35);
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-name{font-size:18px;font-weight:800;color:var(--g);letter-spacing:.06em}
+.logo-name span{color:var(--tx2);font-weight:400}
+
+h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--tx1)}
+.subtitle{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:30px;line-height:1.5}
+
+.field{margin-bottom:16px}
+label{
+  display:block;font-size:11px;font-weight:600;
+  color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;
+  margin-bottom:7px;
+}
+input{
+  width:100%;background:var(--bg3);border:1px solid var(--bdr);
+  border-radius:10px;padding:13px 16px;color:var(--tx1);
+  font-family:'Poppins',sans-serif;font-size:14px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+input:focus{
+  border-color:rgba(0,207,255,.5);
+  box-shadow:0 0 0 3px rgba(0,207,255,.08);
+}
+input::placeholder{color:var(--tx3)}
+
+.forgot{
+  display:block;text-align:right;font-size:12px;
+  color:var(--tx3);text-decoration:none;margin-top:-8px;margin-bottom:20px;
+  transition:color .15s;
+}
+.forgot:hover{color:var(--g2)}
+
+.btn{
+  width:100%;background:var(--g);color:#000;border:none;
+  border-radius:10px;padding:14px;
+  font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:.04em;
+  transition:opacity .2s,transform .15s,box-shadow .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,255,136,.25)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.error{
+  background:rgba(255,59,59,.1);border:1px solid rgba(255,59,59,.3);
+  border-radius:8px;padding:10px 14px;
+  font-size:13px;color:#ff6b6b;margin-bottom:16px;
+  display:none;
+}
+.error.show{display:block}
+
+.divider{
+  display:flex;align-items:center;gap:12px;
+  margin:24px 0;color:var(--tx3);font-size:12px;
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+.signup-hint{
+  text-align:center;font-size:13px;color:var(--tx3);line-height:1.6;
+}
+.signup-hint a{
+  color:var(--g);text-decoration:none;font-weight:600;
+}
+.signup-hint a:hover{text-decoration:underline}
+
+.badge{
+  display:flex;align-items:center;gap:6px;
+  justify-content:center;margin-top:24px;
+  font-size:11px;color:var(--tx3);
+}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:var(--g);animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.spinner{
+  width:16px;height:16px;border:2px solid rgba(0,0,0,.3);
+  border-top-color:#000;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+      </div>
+      <div class="logo-name">YTBlock<span>.space</span></div>
+    </div>
+
+    <h1>Bem-vindo de volta</h1>
+    <p class="subtitle">Entre com seu email e senha para acessar<br>o YouTube sem anúncios.</p>
+
+    <div class="error" id="error-msg"></div>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <a href="/reset-password" class="forgot">Esqueci minha senha</a>
+
+    <button class="btn" id="login-btn" onclick="doLogin()">
+      <span id="btn-text">Entrar no Dashboard</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+
+    <div class="divider">ou</div>
+    <div class="signup-hint">
+      Ainda não tem acesso?
+      <a href="https://ytblock.space" target="_blank">Assinar por R$97/ano →</a>
+    </div>
+
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Conexão segura e criptografada
+    </div>
+  </div>
+</div>
+
+<script>
+const emailEl = document.getElementById('email');
+const passEl  = document.getElementById('password');
+const errEl   = document.getElementById('error-msg');
+const btn     = document.getElementById('login-btn');
+const spinner = document.getElementById('spinner');
+const btnTxt  = document.getElementById('btn-text');
+
+function showError(msg){
+  errEl.textContent = msg;
+  errEl.classList.add('show');
+}
+function hideError(){ errEl.classList.remove('show') }
+
+[emailEl, passEl].forEach(el => el.addEventListener('keydown', e => {
+  if(e.key === 'Enter') doLogin();
+}));
+
+async function doLogin(){
+  hideError();
+  const email = emailEl.value.trim();
+  const password = passEl.value;
+  if(!email || !password){ showError('Preencha email e senha.'); return; }
+
+  btn.disabled = true;
+  btnTxt.textContent = 'Entrando...';
+  spinner.style.display = 'block';
+
+  try{
+    const r = await fetch('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const d = await r.json();
+    if(d.ok){ window.location.href = '/dashboard'; }
+    else { showError(d.error || 'Erro ao entrar.'); }
+  } catch(e){
+    showError('Falha de conexão. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btnTxt.textContent = 'Entrar no Dashboard';
+    spinner.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>

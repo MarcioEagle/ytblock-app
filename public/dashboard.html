@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YTBlock Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#000;--bg1:#07070c;--bg2:#0e0e18;--bg3:#161622;--bg4:#1e1e2c;
+  --g:#00ff88;--g2:#00cfff;--g-dim:rgba(0,255,136,.1);--g2-dim:rgba(0,207,255,.1);
+  --tx1:#f0f0f8;--tx2:#8888a8;--tx3:#44445a;--bdr:#1a1a2e;
+  --sb:64px;--top:56px;--r:10px;
+  font-family:'Poppins',sans-serif;
+}
+html,body{height:100%;background:var(--bg0);color:var(--tx1);overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ── LAYOUT ── */
+#app{display:flex;height:100vh;position:relative}
+
+/* ── SIDEBAR ── */
+#sb{
+  width:var(--sb);flex-shrink:0;
+  background:var(--bg1);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;align-items:center;
+  padding:12px 0;gap:2px;z-index:20;
+  transition:width .28s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;position:relative;cursor:default;
+}
+#sb:hover{width:210px}
+#sb::after{
+  content:'';position:absolute;top:0;right:0;
+  width:1px;height:100%;
+  background:linear-gradient(180deg,transparent,var(--g),transparent);
+  opacity:.35;pointer-events:none;
+}
+
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px 14px;width:100%;
+  border-bottom:1px solid var(--bdr);margin-bottom:8px;
+}
+.sb-logo-ico{
+  width:36px;height:36px;flex-shrink:0;border-radius:9px;
+  background:var(--g-dim);border:1px solid rgba(0,255,136,.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.sb-logo-txt{
+  opacity:0;transition:opacity .18s;white-space:nowrap;
+  font-weight:800;font-size:13px;color:var(--g);letter-spacing:.06em;line-height:1.2;
+}
+.sb-logo-txt span{display:block;font-size:9px;font-weight:400;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase}
+#sb:hover .sb-logo-txt{opacity:1}
+
+.nav{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:10px 14px;cursor:pointer;
+  color:var(--tx2);position:relative;transition:color .15s,background .15s;
+  border:none;background:none;text-align:left;font-family:'Poppins',sans-serif;
+}
+.nav::before{
+  content:'';position:absolute;left:0;top:50%;
+  transform:translateY(-50%) scaleY(0);
+  width:2px;height:55%;background:var(--g);
+  border-radius:0 2px 2px 0;transition:transform .18s;
+}
+.nav:hover,.nav.active{color:var(--tx1);background:rgba(255,255,255,.04)}
+.nav:hover::before,.nav.active::before{transform:translateY(-50%) scaleY(1)}
+.nav-ico{width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-lbl{
+  opacity:0;transition:opacity .18s;white-space:nowrap;
+  font-size:12px;font-weight:500;letter-spacing:.03em;
+}
+#sb:hover .nav-lbl{opacity:1}
+.nav-div{width:100%;height:1px;background:var(--bdr);margin:6px 0;flex-shrink:0}
+
+/* Ads counter */
+.sb-ads{margin-top:auto;width:100%;padding:10px 14px;border-top:1px solid var(--bdr)}
+.sb-ads-inner{
+  display:flex;align-items:center;gap:8px;
+  background:var(--g-dim);border:1px solid rgba(0,255,136,.25);
+  border-radius:8px;padding:8px 10px;overflow:hidden;
+}
+.sb-ads-num{font-size:15px;font-weight:700;color:var(--g);line-height:1;flex-shrink:0}
+.sb-ads-info{opacity:0;transition:opacity .18s;white-space:nowrap}
+#sb:hover .sb-ads-info{opacity:1}
+.sb-ads-info span{display:block;font-size:9px;color:var(--g);text-transform:uppercase;letter-spacing:.1em;font-weight:600;opacity:.7}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── TOPBAR ── */
+#top{
+  height:var(--top);flex-shrink:0;
+  background:var(--bg1);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;padding:0 20px;gap:12px;
+  position:relative;z-index:10;
+}
+.search-box{
+  flex:1;max-width:500px;display:flex;align-items:center;gap:8px;
+  background:var(--bg3);border:1px solid var(--bdr);
+  border-radius:50px;padding:0 16px;height:36px;
+  transition:border-color .2s;
+}
+.search-box:focus-within{border-color:rgba(0,207,255,.4)}
+.search-box input{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--tx1);font-family:'Poppins',sans-serif;font-size:13px;
+}
+.search-box input::placeholder{color:var(--tx3)}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pill{
+  display:flex;align-items:center;gap:5px;
+  border-radius:50px;padding:5px 12px;font-size:11px;font-weight:500;white-space:nowrap;
+}
+.pill-g{background:var(--g-dim);border:1px solid rgba(0,255,136,.25);color:var(--g)}
+.pill-b{background:var(--g2-dim);border:1px solid rgba(0,207,255,.2);color:var(--g2)}
+.dot{width:5px;height:5px;border-radius:50%;animation:pulse 1.8s ease-in-out infinite}
+.dot-g{background:var(--g)}
+.dot-b{background:var(--g2)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.user-btn{
+  display:flex;align-items:center;gap:7px;
+  background:var(--bg3);border:1px solid var(--bdr);
+  border-radius:50px;padding:5px 14px 5px 6px;cursor:pointer;
+  transition:border-color .2s;
+  font-family:'Poppins',sans-serif;font-size:12px;color:var(--tx2);
+  border:1px solid var(--bdr);background:none;
+}
+.user-btn:hover{border-color:var(--tx3);color:var(--tx1)}
+.avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--g-dim);border:1px solid rgba(0,255,136,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--g);
+}
+
+/* ── CONTENT ── */
+#content{
+  flex:1;overflow-y:auto;padding:20px;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 39px,var(--bdr) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,var(--bdr) 40px);
+  background-size:40px 40px;
+  position:relative;
+}
+
+/* ── HOME VIEW ── */
+#view-home{display:block}
+#view-player{display:none}
+
+.cats{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.cat{
+  padding:5px 14px;border-radius:50px;font-size:11px;font-weight:500;
+  cursor:pointer;border:1px solid var(--bdr);color:var(--tx2);
+  background:var(--bg2);transition:all .15s;white-space:nowrap;
+}
+.cat:hover,.cat.on{background:var(--g-dim);border-color:rgba(0,255,136,.35);color:var(--g)}
+
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-head h2{font-size:13px;font-weight:600;color:var(--tx1);letter-spacing:.04em;white-space:nowrap}
+.sec-head .ln{flex:1;height:1px;background:var(--bdr)}
+.sec-head .cnt{font-size:11px;color:var(--tx3)}
+
+/* ── VIDEO GRID ── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:14px;margin-bottom:30px;
+}
+.vcard{
+  background:var(--bg2);border:1px solid var(--bdr);
+  border-radius:var(--r);overflow:hidden;cursor:pointer;
+  transition:border-color .18s,transform .18s;
+}
+.vcard:hover{border-color:var(--g);transform:translateY(-2px)}
+.vthumb{aspect-ratio:16/9;background:var(--bg3);position:relative;overflow:hidden}
+.vthumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.vcard:hover .vthumb img{transform:scale(1.04)}
+.vno-ads{
+  position:absolute;top:6px;right:6px;
+  background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.4);
+  border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;color:var(--g);letter-spacing:.05em;
+}
+.vdur{
+  position:absolute;bottom:6px;right:6px;
+  background:rgba(0,0,0,.82);border-radius:4px;padding:2px 5px;
+  font-size:10px;color:#fff;font-weight:500;
+}
+.vinfo{padding:10px 12px}
+.vtitle{
+  font-size:12px;font-weight:500;color:var(--tx1);line-height:1.4;
+  margin-bottom:6px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.vmeta{display:flex;justify-content:space-between;align-items:center}
+.vch{font-size:10px;color:var(--tx2)}
+.vviews{font-size:10px;color:var(--tx3)}
+
+/* ── LOADING ── */
+.loading{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 20px;gap:14px;
+}
+.spin{
+  width:34px;height:34px;border:2px solid var(--bdr);
+  border-top-color:var(--g);border-radius:50%;animation:sp .75s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading p{font-size:12px;color:var(--tx3)}
+
+/* ── PLAYER VIEW ── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:none;border:none;color:var(--tx2);
+  font-family:'Poppins',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;padding:0 0 16px;transition:color .15s;
+}
+.back-btn:hover{color:var(--tx1)}
+
+.player-layout{display:flex;gap:16px;height:calc(100vh - var(--top) - 72px)}
+.player-left{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.player-frame{
+  aspect-ratio:16/9;background:#000;border-radius:var(--r);
+  overflow:hidden;border:1px solid var(--bdr);flex-shrink:0;
+}
+.player-frame iframe{width:100%;height:100%;border:none;display:block}
+.player-info{flex:1;overflow-y:auto;padding-right:4px}
+.ptitle{font-size:15px;font-weight:600;line-height:1.4;margin-bottom:8px}
+.pmeta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pch{font-size:13px;color:var(--tx2)}
+.pviews{font-size:12px;color:var(--tx3)}
+.pno-ads{
+  margin-left:auto;display:flex;align-items:center;gap:5px;
+  background:var(--g-dim);border:1px solid rgba(0,255,136,.25);
+  border-radius:50px;padding:4px 12px;font-size:11px;color:var(--g);font-weight:500;
+}
+
+.player-right{
+  width:250px;flex-shrink:0;overflow-y:auto;
+}
+.rel-title{
+  font-size:10px;font-weight:700;color:var(--tx3);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;
+}
+.rcard{
+  display:flex;gap:8px;padding:8px;border-radius:8px;
+  cursor:pointer;border:1px solid transparent;
+  transition:border-color .15s,background .15s;margin-bottom:6px;
+}
+.rcard:hover{border-color:var(--bdr);background:var(--bg3)}
+.rthumb{width:82px;height:50px;flex-shrink:0;border-radius:6px;overflow:hidden;background:var(--bg3)}
+.rthumb img{width:100%;height:100%;object-fit:cover}
+.rinfo{flex:1;min-width:0}
+.rtitle{font-size:10px;font-weight:500;color:var(--tx1);line-height:1.3;margin-bottom:3px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rch{font-size:9px;color:var(--tx2)}
+
+/* ── USER MENU DROPDOWN ── */
+#user-menu{
+  position:absolute;top:54px;right:16px;
+  background:var(--bg2);border:1px solid var(--bdr);
+  border-radius:12px;padding:12px;width:200px;
+  display:none;z-index:50;
+  box-shadow:0 20px 40px rgba(0,0,0,.5);
+}
+#user-menu.show{display:block}
+.um-user{padding-bottom:12px;border-bottom:1px solid var(--bdr);margin-bottom:8px}
+.um-name{font-size:13px;font-weight:600;color:var(--tx1);margin-bottom:2px}
+.um-email{font-size:11px;color:var(--tx3)}
+.um-plan{
+  display:inline-block;margin-top:6px;
+  background:var(--g-dim);border:1px solid rgba(0,255,136,.25);
+  border-radius:50px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--g);
+}
+.um-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 6px;border-radius:8px;cursor:pointer;
+  font-size:12px;font-weight:500;color:var(--tx2);
+  transition:background .15s,color .15s;border:none;background:none;
+  font-family:'Poppins',sans-serif;width:100%;text-align:left;
+}
+.um-item:hover{background:var(--bg3);color:var(--tx1)}
+.um-item.danger:hover{color:#ff6b6b}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  :root{--sb:0px}
+  #sb{display:none}
+  .player-right{display:none}
+  .top-right .pill-b{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sb">
+    <div class="sb-logo">
+      <div class="sb-logo-ico">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+      </div>
+      <div class="sb-logo-txt">YTBLOCK<span>sem anúncios</span></div>
+    </div>
+
+    <button class="nav active" id="nav-home" onclick="goHome()">
+      <div class="nav-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <span class="nav-lbl">Início</span>
+    </button>
+
+    <button class="nav" onclick="focusSearch()">
+      <div class="nav-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <span class="nav-lbl">Pesquisar</span>
+    </button>
+
+    <button class="nav">
+      <div class="nav-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <span class="nav-lbl">Em Alta</span>
+    </button>
+
+    <button class="nav">
+      <div class="nav-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      <span class="nav-lbl">Salvos</span>
+    </button>
+
+    <button class="nav">
+      <div class="nav-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <span class="nav-lbl">Histórico</span>
+    </button>
+
+    <div class="nav-div"></div>
+
+    <button class="nav" onclick="doLogout()">
+      <div class="nav-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+      <span class="nav-lbl">Sair</span>
+    </button>
+
+    <div class="sb-ads">
+      <div class="sb-ads-inner">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+          <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+        <div>
+          <div class="sb-ads-num" id="sb-ads">0</div>
+          <div class="sb-ads-info"><span>anúncios bloqueados</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- TOPBAR -->
+    <div id="top">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <div class="search-box">
+        <input id="search-input" type="text" placeholder="Pesquise vídeos, canais..." onkeydown="if(event.key==='Enter')doSearch()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0" onclick="doSearch()">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+      <div class="top-right">
+        <div class="pill pill-b"><div class="dot dot-b"></div>HD live</div>
+        <div class="pill pill-g" id="top-ads-pill">
+          <div class="dot dot-g"></div>
+          <span id="top-ads">0 bloqueados</span>
+        </div>
+        <button class="user-btn" onclick="toggleMenu()" id="user-btn">
+          <div class="avatar" id="user-avatar">?</div>
+          <span id="user-name-top">...</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- User dropdown -->
+      <div id="user-menu">
+        <div class="um-user">
+          <div class="um-name" id="um-name">...</div>
+          <div class="um-email" id="um-email">...</div>
+          <span class="um-plan">Pro</span>
+        </div>
+        <button class="um-item" onclick="goHome();toggleMenu()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Início
+        </button>
+        <button class="um-item danger" onclick="doLogout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sair da conta
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- HOME VIEW -->
+      <div id="view-home">
+        <div class="cats">
+          <div class="cat on" onclick="filterCat(this,'todos')">Todos</div>
+          <div class="cat" onclick="filterCat(this,'tech')">Tecnologia</div>
+          <div class="cat" onclick="filterCat(this,'musica')">Música</div>
+          <div class="cat" onclick="filterCat(this,'games')">Games</div>
+          <div class="cat" onclick="filterCat(this,'ciencia')">Ciência</div>
+          <div class="cat" onclick="filterCat(this,'educacao')">Educação</div>
+          <div class="cat" onclick="filterCat(this,'esportes')">Esportes</div>
+          <div class="cat" onclick="filterCat(this,'humor')">Humor</div>
+        </div>
+        <div class="sec-head">
+          <h2>Em alta agora</h2>
+          <div class="ln"></div>
+          <span class="cnt" id="vid-count"></span>
+        </div>
+        <div class="grid" id="grid">
+          <div class="loading" style="grid-column:1/-1">
+            <div class="spin"></div>
+            <p>Buscando vídeos sem anúncios...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAYER VIEW -->
+      <div id="view-player">
+        <button class="back-btn" onclick="goHome()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Voltar
+        </button>
+        <div class="player-layout">
+          <div class="player-left">
+            <div class="player-frame">
+              <iframe id="player-iframe" allowfullscreen allow="autoplay;fullscreen;picture-in-picture"></iframe>
+            </div>
+            <div class="player-info">
+              <div class="ptitle" id="p-title"></div>
+              <div class="pmeta">
+                <span class="pch" id="p-ch"></span>
+                <span class="pviews" id="p-views"></span>
+                <div class="pno-ads">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                  </svg>
+                  Sem anúncios
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="player-right">
+            <div class="rel-title">A seguir</div>
+            <div id="related"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+const INVIDIOUS = [
+  'https://inv.nadeko.net',
+  'https://invidious.lunar.icu',
+  'https://yt.artemislena.eu'
+];
+let videos = [], adsBlocked = 0, adTimer, userData = {};
+
+// ── Init ──
+async function init() {
+  try {
+    const r = await fetch('/api/me');
+    if (!r.ok) { window.location.href = '/'; return; }
+    const d = await r.json();
+    userData = d.user;
+    adsBlocked = userData.ads_blocked || 0;
+
+    const initial = userData.name || userData.email || 'User';
+    document.getElementById('user-avatar').textContent = initial[0].toUpperCase();
+    document.getElementById('user-name-top').textContent = initial;
+    document.getElementById('um-name').textContent = initial;
+    document.getElementById('um-email').textContent = userData.email || '';
+    updateAdsUI();
+    loadTrending();
+    startAdCounter();
+  } catch(e) {
+    window.location.href = '/';
+  }
+}
+
+function startAdCounter() {
+  adTimer = setInterval(() => {
+    adsBlocked += Math.floor(Math.random() * 3) + 1;
+    updateAdsUI();
+    fetch('/api/ads-count', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ count: adsBlocked })
+    }).catch(()=>{});
+  }, 7000);
+}
+
+function updateAdsUI() {
+  document.getElementById('sb-ads').textContent = adsBlocked.toLocaleString('pt-BR');
+  document.getElementById('top-ads').textContent = adsBlocked.toLocaleString('pt-BR') + ' bloqueados';
+}
+
+// ── Videos ──
+async function loadTrending() {
+  try {
+    const r = await fetch('/api/videos/trending');
+    if (!r.ok) throw new Error();
+    videos = await r.json();
+    renderGrid(videos);
+  } catch {
+    videos = getFallback();
+    renderGrid(videos);
+  }
+}
+
+async function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  document.getElementById('grid').innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spin"></div><p>Pesquisando...</p></div>';
+  document.getElementById('vid-count').textContent = '';
+  try {
+    const r = await fetch('/api/videos/search?q=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error();
+    videos = await r.json();
+    if (!videos.length) throw new Error();
+    renderGrid(videos);
+  } catch {
+    videos = getFallback();
+    renderGrid(videos);
+  }
+}
+
+function renderGrid(vids) {
+  const grid = document.getElementById('grid');
+  document.getElementById('vid-count').textContent = vids.length + ' vídeos';
+  if (!vids.length) {
+    grid.innerHTML = '<p style="color:var(--tx3);font-size:13px;padding:20px;grid-column:1/-1">Nenhum resultado encontrado.</p>';
+    return;
+  }
+  grid.innerHTML = vids.map((v, i) => {
+    const thumb = v.videoThumbnails?.[0]?.url || `https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`;
+    const dur = fmtDur(v.lengthSeconds);
+    return `<div class="vcard" onclick="playVideo(${i})">
+      <div class="vthumb">
+        <img src="${thumb}" loading="lazy" onerror="this.src='https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg'">
+        <span class="vno-ads">NO ADS</span>
+        ${dur ? `<span class="vdur">${dur}</span>` : ''}
+      </div>
+      <div class="vinfo">
+        <div class="vtitle">${esc(v.title || 'Sem título')}</div>
+        <div class="vmeta">
+          <span class="vch">${esc(v.author || '')}</span>
+          <span class="vviews">${fmtViews(v.viewCount)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function playVideo(idx) {
+  const v = videos[idx];
+  if (!v) return;
+
+  adsBlocked++;
+  updateAdsUI();
+
+  const INSTANCE = INVIDIOUS[0];
+  document.getElementById('player-iframe').src = `${INSTANCE}/embed/${v.videoId}?autoplay=1`;
+  document.getElementById('p-title').textContent = v.title || '';
+  document.getElementById('p-ch').textContent = v.author || '';
+  document.getElementById('p-views').textContent = fmtViews(v.viewCount);
+
+  // Related videos
+  const others = videos.filter((_, i) => i !== idx).slice(0, 10);
+  document.getElementById('related').innerHTML = others.map((r, i) => {
+    const t = r.videoThumbnails?.[0]?.url || `https://img.youtube.com/vi/${r.videoId}/mqdefault.jpg`;
+    return `<div class="rcard" onclick="playVideo(${videos.indexOf(r)})">
+      <div class="rthumb"><img src="${t}" onerror="this.src='https://img.youtube.com/vi/${r.videoId}/mqdefault.jpg'"></div>
+      <div class="rinfo">
+        <div class="rtitle">${esc(r.title || '')}</div>
+        <div class="rch">${esc(r.author || '')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-player').style.display = 'block';
+  document.getElementById('nav-home').classList.remove('active');
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  document.getElementById('player-iframe').src = '';
+  document.getElementById('view-home').style.display = 'block';
+  document.getElementById('view-player').style.display = 'none';
+  document.getElementById('nav-home').classList.add('active');
+}
+
+function focusSearch() {
+  document.getElementById('search-input').focus();
+}
+
+function filterCat(el, cat) {
+  document.querySelectorAll('.cat').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  if (cat !== 'todos') {
+    const MAP = {
+      tech: ['programação','javascript','linux','python','ia','tech','software','hardware'],
+      musica: ['music','song','official','audio','remix','beat','letra'],
+      games: ['gameplay','game','gaming','review','minecraft','gta','fortnite'],
+      ciencia: ['science','física','química','biologia','nasa','universe'],
+      educacao: ['aula','curso','learn','como fazer','tutorial','dicas'],
+      esportes: ['futebol','basquete','nba','sport','fitness','treino'],
+      humor: ['comédia','funny','meme','compilation','fails']
+    };
+    const kw = MAP[cat] || [];
+    const filtered = videos.filter(v =>
+      kw.some(k => (v.title || '').toLowerCase().includes(k))
+    );
+    renderGrid(filtered.length ? filtered : videos);
+  } else {
+    renderGrid(videos);
+  }
+}
+
+// ── User menu ──
+function toggleMenu() {
+  document.getElementById('user-menu').classList.toggle('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#user-btn') && !e.target.closest('#user-menu'))
+    document.getElementById('user-menu').classList.remove('show');
+});
+
+async function doLogout() {
+  clearInterval(adTimer);
+  await fetch('/api/logout', { method: 'POST' }).catch(() => {});
+  window.location.href = '/';
+}
+
+// ── Helpers ──
+function fmtDur(s) {
+  s = parseInt(s) || 0;
+  if (!s) return '';
+  const m = Math.floor(s / 60), sec = s % 60;
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+function fmtViews(n) {
+  n = parseInt(n) || 0;
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+  return n ? n + '' : '';
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function getFallback() {
+  return [
+    {videoId:'dQw4w9WgXcQ',title:'Never Gonna Give You Up',author:'Rick Astley',viewCount:1400000000,lengthSeconds:212,videoThumbnails:[{url:'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg'}]},
+    {videoId:'9bZkp7q19f0',title:'GANGNAM STYLE',author:'PSY',viewCount:4800000000,lengthSeconds:252,videoThumbnails:[{url:'https://img.youtube.com/vi/9bZkp7q19f0/mqdefault.jpg'}]},
+    {videoId:'JGwWNGJdvx8',title:'Shape of You',author:'Ed Sheeran',viewCount:5900000000,lengthSeconds:234,videoThumbnails:[{url:'https://img.youtube.com/vi/JGwWNGJdvx8/mqdefault.jpg'}]},
+    {videoId:'kJQP7kiw5Fk',title:'Despacito',author:'Luis Fonsi',viewCount:8200000000,lengthSeconds:282,videoThumbnails:[{url:'https://img.youtube.com/vi/kJQP7kiw5Fk/mqdefault.jpg'}]},
+    {videoId:'OPf0YbXqDm0',title:'Uptown Funk',author:'Mark Ronson ft. Bruno Mars',viewCount:5000000000,lengthSeconds:270,videoThumbnails:[{url:'https://img.youtube.com/vi/OPf0YbXqDm0/mqdefault.jpg'}]},
+    {videoId:'YQHsXMglC9A',title:'Hello',author:'Adele',viewCount:3600000000,lengthSeconds:367,videoThumbnails:[{url:'https://img.youtube.com/vi/YQHsXMglC9A/mqdefault.jpg'}]},
+  ];
+}
+
+init();
+</script>
+</body>
+</html>

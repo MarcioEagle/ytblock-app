@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YTBlock — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{font-family:'Poppins',sans-serif;--g:#00ff88;--g2:#00cfff;--r:#ff4757;--bg0:#000;--bg2:#0e0e18;--bg3:#161622;--tx1:#f0f0f8;--tx2:#8888a8;--tx3:#44445a;--bdr:#1a1a2e}
+html,body{height:100%;background:var(--bg0);color:var(--tx1)}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.025) 1px,transparent 1px);background-size:60px 60px;animation:g 25s linear infinite;pointer-events:none}
+@keyframes g{to{background-position:60px 60px}}
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1}
+.card{background:rgba(14,14,24,.92);border:1px solid var(--bdr);border-radius:20px;padding:44px 40px;width:100%;max-width:380px;backdrop-filter:blur(20px);box-shadow:0 40px 80px rgba(0,0,0,.6)}
+.logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:8px}
+.logo-ico{width:42px;height:42px;border-radius:10px;background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);display:flex;align-items:center;justify-content:center}
+.logo-name{font-size:18px;font-weight:800;color:var(--tx1);letter-spacing:.04em}
+.admin-tag{display:block;text-align:center;font-size:10px;font-weight:600;color:var(--r);letter-spacing:.14em;text-transform:uppercase;margin-bottom:28px;background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2);border-radius:50px;padding:4px 14px;width:fit-content;margin:0 auto 28px}
+h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px}
+.sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:28px}
+label{display:block;font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:13px 16px;color:var(--tx1);font-family:'Poppins',sans-serif;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:16px}
+input:focus{border-color:rgba(255,71,87,.5)}
+input::placeholder{color:var(--tx3)}
+.btn{width:100%;background:var(--r);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.error{background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#ff6b7a;margin-bottom:16px;display:none}
+.error.show{display:block}
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.back{display:block;text-align:center;margin-top:20px;font-size:13px;color:var(--tx3);text-decoration:none;transition:color .15s}
+.back:hover{color:var(--tx1)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="logo-name">YTBlock</div>
+    </div>
+    <span class="admin-tag">⬡ Painel Administrativo</span>
+    <h1>Acesso restrito</h1>
+    <p class="sub">Somente administradores autorizados.</p>
+    <div class="error" id="err"></div>
+    <div>
+      <label>Email admin</label>
+      <input type="email" id="email" placeholder="admin@ytblock.space" autocomplete="email">
+      <label>Senha</label>
+      <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn" id="btn" onclick="login()">
+        <span id="btxt">Entrar no Painel</span>
+        <div class="spin" id="spin"></div>
+      </button>
+    </div>
+    <a href="/" class="back">← Voltar para o site</a>
+  </div>
+</div>
+<script>
+document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+async function login(){
+  const email=document.getElementById('email').value.trim();
+  const pass=document.getElementById('pass').value;
+  const err=document.getElementById('err');
+  const btn=document.getElementById('btn');
+  const spin=document.getElementById('spin');
+  const btxt=document.getElementById('btxt');
+  err.classList.remove('show');
+  if(!email||!pass){err.textContent='Preencha todos os campos.';err.classList.add('show');return}
+  btn.disabled=true;btxt.textContent='Verificando...';spin.style.display='block';
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(d.ok)window.location.href='/admin';
+    else{err.textContent=d.error||'Credenciais inválidas.';err.classList.add('show');}
+  }catch{err.textContent='Erro de conexão.';err.classList.add('show');}
+  finally{btn.disabled=false;btxt.textContent='Entrar no Painel';spin.style.display='none';}
+}
+</script>
+</body>
+</html>

@@ -575,8 +575,8 @@ function playVideo(idx) {
   adsBlocked++;
   updateAdsUI();
 
-  const INSTANCE = INVIDIOUS[0];
-  document.getElementById('player-iframe').src = `${INSTANCE}/embed/${v.videoId}?autoplay=1`;
+  // Usa YouTube embed direto — sem anúncios via parâmetros
+  document.getElementById('player-iframe').src = `https://www.youtube.com/embed/${v.videoId}?autoplay=1&modestbranding=1&rel=0&showinfo=0`;
   document.getElementById('p-title').textContent = v.title || '';
   document.getElementById('p-ch').textContent = v.author || '';
   document.getElementById('p-views').textContent = fmtViews(v.viewCount);

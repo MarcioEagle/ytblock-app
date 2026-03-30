@@ -2,10 +2,10 @@
   "name": "ytblock",
   "version": "1.0.0",
   "description": "YTBlock — YouTube sem anúncios",
+  "author": "YTBlock",
   "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
-    "electron": "electron .",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac"
   },
@@ -13,7 +13,10 @@
     "appId": "space.ytblock.app",
     "productName": "YTBlock",
     "directories": { "output": "dist" },
-    "files": ["electron/**/*", "package.json"],
+    "files": [
+      "electron/main.js",
+      "package.json"
+    ],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }]
     },

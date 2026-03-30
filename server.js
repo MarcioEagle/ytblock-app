@@ -16,10 +16,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieSession({
-  name:   'ytblock_session',
-  secret: process.env.SESSION_SECRET || 'ytblock_secret_key',
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
-  secure: process.env.NODE_ENV === 'production',
+  name:    'ytblock_session',
+  keys:    [process.env.SESSION_SECRET || 'ytblock_secret_key'],
+  maxAge:  30 * 24 * 60 * 60 * 1000,
+  secure:  false,
   sameSite: 'lax'
 }));
 

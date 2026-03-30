@@ -15,9 +15,12 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - name: Preparar main.js
+      - name: Copiar main.js
         run: cp electron/main.js main.js
-      - run: npx electron-builder --win
+      - name: Build Windows
+        run: npx electron-builder --win --publish never
+        env:
+          GH_TOKEN: ""
       - uses: actions/upload-artifact@v4
         with:
           name: YTBlock-Windows
@@ -31,9 +34,12 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - name: Preparar main.js
+      - name: Copiar main.js
         run: cp electron/main.js main.js
-      - run: npx electron-builder --mac
+      - name: Build Mac
+        run: npx electron-builder --mac --publish never
+        env:
+          GH_TOKEN: ""
       - uses: actions/upload-artifact@v4
         with:
           name: YTBlock-Mac

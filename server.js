@@ -1,36 +1,62 @@
 require('dotenv').config();
-const express     = require('express');
-const cookieSession = require('cookie-session');
-const path        = require('path');
-const fetch       = require('node-fetch');
+const express = require('express');
+const path    = require('path');
+const fetch   = require('node-fetch');
+const jwt     = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const { sendWelcomeEmail, sendPasswordResetEmail } = require('./mailer');
 
 const app = express();
+const JWT_SECRET = process.env.SESSION_SECRET || 'ytblock_jwt_secret_2025';
+const COOKIE_NAME = 'ytblock_token';
+const ADMIN_COOKIE = 'ytblock_admin';
 
 const supabase      = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-// ── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cookieSession({
-  name:    'ytblock_session',
-  keys:    [process.env.SESSION_SECRET || 'ytblock_secret_key'],
-  maxAge:  30 * 24 * 60 * 60 * 1000,
-  secure:  false,
-  sameSite: 'lax'
-}));
+
+// ── Cookie helpers ────────────────────────────────────────────────────────────
+function setUserCookie(res, payload) {
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Max-Age=${30*24*3600}; SameSite=Lax`);
+}
+function setAdminCookie(res) {
+  const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '8h' });
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${token}; Path=/; HttpOnly; Max-Age=${8*3600}; SameSite=Lax`);
+}
+function clearCookie(res, name) {
+  res.setHeader('Set-Cookie', `${name}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax`);
+}
+function getUserFromCookie(req) {
+  try {
+    const raw = req.headers.cookie || '';
+    const match = raw.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
+    if (!match) return null;
+    return jwt.verify(match[1], JWT_SECRET);
+  } catch { return null; }
+}
+function getAdminFromCookie(req) {
+  try {
+    const raw = req.headers.cookie || '';
+    const match = raw.match(new RegExp(`${ADMIN_COOKIE}=([^;]+)`));
+    if (!match) return null;
+    return jwt.verify(match[1], JWT_SECRET);
+  } catch { return null; }
+}
 
 // ── Guards ────────────────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
-  if (req.session?.user) return next();
+  const user = getUserFromCookie(req);
+  if (user) { req.user = user; return next(); }
   if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Não autorizado.' });
   res.redirect('/');
 }
 function requireAdmin(req, res, next) {
-  if (req.session?.admin) return next();
+  const admin = getAdminFromCookie(req);
+  if (admin) return next();
   if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Acesso negado.' });
   res.redirect('/admin/login');
 }
@@ -39,7 +65,7 @@ function requireAdmin(req, res, next) {
 // PÁGINAS
 // ══════════════════════════════════════════════════════════════════════════════
 app.get('/', (req, res) => {
-  if (req.session?.user) return res.redirect('/dashboard');
+  if (getUserFromCookie(req)) return res.redirect('/dashboard');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 app.get('/dashboard',     requireAuth,  (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
@@ -61,21 +87,25 @@ app.post('/api/login', async (req, res) => {
     if (!profile) return res.status(403).json({ error: 'Perfil não encontrado.' });
     if (profile.status !== 'active') return res.status(403).json({ error: 'Assinatura inativa. Renove em ytblock.space' });
 
-    req.session.user = {
+    const payload = {
       id: data.user.id, email: data.user.email,
       name: profile.name || data.user.email.split('@')[0],
       plan: profile.plan || 'pro', ads_blocked: profile.ads_blocked || 0
     };
+    setUserCookie(res, payload);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: 'Erro interno.' }); }
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Erro interno.' }); }
 });
 
-app.post('/api/logout', (req, res) => { req.session = null; res.json({ ok: true }); });
-app.get('/api/me', requireAuth, (req, res) => res.json({ user: req.session.user }));
+app.post('/api/logout', (req, res) => {
+  clearCookie(res, COOKIE_NAME);
+  res.json({ ok: true });
+});
+
+app.get('/api/me', requireAuth, (req, res) => res.json({ user: req.user }));
 
 app.post('/api/ads-count', requireAuth, async (req, res) => {
-  await supabaseAdmin.from('profiles').update({ ads_blocked: req.body.count }).eq('id', req.session.user.id).catch(()=>{});
-  req.session.user = { ...req.session.user, ads_blocked: req.body.count };
+  await supabaseAdmin.from('profiles').update({ ads_blocked: req.body.count }).eq('id', req.user.id).catch(()=>{});
   res.json({ ok: true });
 });
 
@@ -144,13 +174,13 @@ app.post('/api/webhook/kiwify', async (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
   if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASS) {
-    req.session.admin = true;
+    setAdminCookie(res);
     return res.json({ ok: true });
   }
   res.status(401).json({ error: 'Credenciais inválidas.' });
 });
 
-app.post('/api/admin/logout', (req, res) => { req.session.admin = false; res.json({ ok: true }); });
+app.post('/api/admin/logout', (req, res) => { clearCookie(res, ADMIN_COOKIE); res.json({ ok: true }); });
 
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
@@ -158,15 +188,15 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     const { count: active }   = await supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'active');
     const { count: inactive } = await supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'inactive');
     const { data: today }     = await supabaseAdmin.from('profiles').select('id').gte('created_at', new Date(Date.now() - 86400000).toISOString());
-    res.json({ total: total || 0, active: active || 0, inactive: inactive || 0, today: today?.length || 0 });
+    res.json({ total: total||0, active: active||0, inactive: inactive||0, today: today?.length||0 });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
   try {
     const { search, status, page = 1 } = req.query;
-    const limit = 20, offset = (parseInt(page) - 1) * limit;
-    let query = supabaseAdmin.from('profiles').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+    const limit = 20, offset = (parseInt(page)-1) * limit;
+    let query = supabaseAdmin.from('profiles').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset+limit-1);
     if (status && status !== 'all') query = query.eq('status', status);
     if (search) query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%`);
     const { data, count, error } = await query;
@@ -182,15 +212,15 @@ app.post('/api/admin/users/create', requireAdmin, async (req, res) => {
     const pwd = Math.random().toString(36).slice(-8) + 'A1!xZ';
     const { data: nu, error } = await supabaseAdmin.auth.admin.createUser({ email, password: pwd, email_confirm: true });
     if (error) return res.status(400).json({ error: error.message });
-    await supabaseAdmin.from('profiles').insert({ id: nu.user.id, email, name: name || email.split('@')[0], plan: 'pro', status: 'active', ads_blocked: 0, created_at: new Date().toISOString() });
-    await sendWelcomeEmail(email, name || email.split('@')[0]);
+    await supabaseAdmin.from('profiles').insert({ id: nu.user.id, email, name: name||email.split('@')[0], plan: 'pro', status: 'active', ads_blocked: 0, created_at: new Date().toISOString() });
+    await sendWelcomeEmail(email, name||email.split('@')[0]);
     res.json({ ok: true, message: 'Usuário criado e email enviado!' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.patch('/api/admin/users/:id/status', requireAdmin, async (req, res) => {
   const { status } = req.body;
-  if (!['active', 'inactive', 'blocked'].includes(status)) return res.status(400).json({ error: 'Status inválido.' });
+  if (!['active','inactive','blocked'].includes(status)) return res.status(400).json({ error: 'Status inválido.' });
   try {
     await supabaseAdmin.from('profiles').update({ status }).eq('id', req.params.id);
     if (status === 'blocked') await supabaseAdmin.auth.admin.updateUserById(req.params.id, { ban_duration: '87600h' });
@@ -202,9 +232,9 @@ app.patch('/api/admin/users/:id/status', requireAdmin, async (req, res) => {
 app.post('/api/admin/users/:id/reset-password', requireAdmin, async (req, res) => {
   try {
     const { data: profile } = await supabaseAdmin.from('profiles').select('email,name').eq('id', req.params.id).single();
-    if (!profile) return res.status(404).json({ error: 'Usuário não encontrado.' });
+    if (!profile) return res.status(404).json({ error: 'Não encontrado.' });
     await supabase.auth.resetPasswordForEmail(profile.email, { redirectTo: 'https://app.ytblock.space/reset-password' });
-    await sendPasswordResetEmail(profile.email, profile.name || profile.email.split('@')[0]);
+    await sendPasswordResetEmail(profile.email, profile.name||profile.email.split('@')[0]);
     res.json({ ok: true, message: 'Email de redefinição enviado!' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -220,15 +250,14 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
 app.post('/api/admin/users/:id/resend-email', requireAdmin, async (req, res) => {
   try {
     const { data: profile } = await supabaseAdmin.from('profiles').select('email,name').eq('id', req.params.id).single();
-    if (!profile) return res.status(404).json({ error: 'Usuário não encontrado.' });
-    await sendWelcomeEmail(profile.email, profile.name || '');
+    if (!profile) return res.status(404).json({ error: 'Não encontrado.' });
+    await sendWelcomeEmail(profile.email, profile.name||'');
     res.json({ ok: true, message: 'Email reenviado!' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Start local (Vercel ignora o listen) ─────────────────────────────────────
 if (process.env.NODE_ENV !== 'production') {
-  app.listen(process.env.PORT || 3000, () => console.log(`✅ YTBlock na porta ${process.env.PORT || 3000}`));
+  app.listen(process.env.PORT || 3000, () => console.log(`✅ YTBlock na porta ${process.env.PORT||3000}`));
 }
 
 module.exports = app;

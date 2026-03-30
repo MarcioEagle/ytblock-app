@@ -12,6 +12,7 @@
   "build": {
     "appId": "space.ytblock.app",
     "productName": "YTBlock",
+    "publish": "never",
     "directories": { "output": "dist" },
     "files": ["main.js", "package.json"],
     "win": {

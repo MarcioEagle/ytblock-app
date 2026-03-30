@@ -1,0 +1,52 @@
+name: Build YTBlock
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows
+        run: npx electron-builder --win
+
+      - name: Upload Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: YTBlock-Windows
+          path: dist/*.exe
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Mac
+        run: npx electron-builder --mac
+
+      - name: Upload Mac
+        uses: actions/upload-artifact@v4
+        with:
+          name: YTBlock-Mac
+          path: dist/*.dmg
